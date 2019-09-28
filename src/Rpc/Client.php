@@ -235,7 +235,7 @@ class Client
         }
 
         if (!$fp) {
-            throw new \Exception("stream_socket_client fail errno={$errNo} errstr={$errStr}");
+            throw new \Exception(sprintf("stream_socket_client fail errno=%s errstr=%s", $errNo, $errStr));
         }
 
         $req = [
@@ -252,6 +252,12 @@ class Client
 
         //设置写超时
         stream_set_timeout($fp, $this->getWriteTimeout());
+
+        $info = stream_get_meta_data($fp);
+        if ($info['timed_out']) {
+            throw new \Exception('write timeout');
+        }
+
         $result = '';
         while (!feof($fp)) {
             $tmp = stream_socket_recvfrom($fp, 1024);
