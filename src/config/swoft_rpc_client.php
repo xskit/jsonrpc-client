@@ -11,6 +11,7 @@ return [
             'port' => 18307,
             'setting' => [
                 'timeout' => 2,
+                'write_timeout' => 10,
             ]
         ]
     ],

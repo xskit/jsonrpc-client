@@ -216,6 +216,11 @@ class Client
         return Arr::get($this->getConnectionInfo(), 'setting.timeout', 3);
     }
 
+    private function getWriteTimeout(): int
+    {
+        return Arr::get($this->getConnectionInfo(), 'setting.write_timeout', 10);
+    }
+
     /**
      * @return array
      * @throws \Exception
@@ -245,6 +250,8 @@ class Client
 
         fwrite($fp, $data);
 
+        //设置写超时
+        stream_set_timeout($fp, $this->getWriteTimeout());
         $result = '';
         while (!feof($fp)) {
             $tmp = stream_socket_recvfrom($fp, 1024);
