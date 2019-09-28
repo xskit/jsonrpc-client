@@ -45,7 +45,7 @@ class Client
 
     public function __construct()
     {
-        $this->config = Config::get('rpc_client');
+        $this->config = Config::get('swoft_rpc_client');
     }
 
     /**
@@ -57,7 +57,7 @@ class Client
      * @return $this
      * @throws \Exception
      */
-    public static function use($name, $method, $param = [], $ext = [])
+    public static function usage($name, $method, $param = [], $ext = [])
     {
         if (self::$instance == null) {
             self::$instance = new self();
