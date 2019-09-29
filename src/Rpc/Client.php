@@ -40,8 +40,11 @@ class Client
 
     private $poolConnection = [];
 
-    private $error;
+    private $errorCode;
+    private $errorMessage;
     private $result;
+
+    private $resultRaw;
 
     public function __construct()
     {
@@ -73,11 +76,13 @@ class Client
     public function call()
     {
         try {
-            $this->error = null;
-            $this->result = Arr::get($this->request(), 'result');
+            $this->resultRaw = $this->request();
+            $this->errorMessage = Arr::get($this->resultRaw, 'error.message');
+            $this->errorCode = Arr::get($this->resultRaw, 'error.code');
+            $this->result = Arr::get($this->resultRaw, 'result');
         } catch (\Exception $e) {
             $this->result = null;
-            $this->error = $e->getMessage();
+            $this->errorMessage = $e->getMessage();
         } finally {
             return $this;
         }
@@ -93,13 +98,18 @@ class Client
         return $this->result;
     }
 
+    public function getRaw()
+    {
+        return $this->resultRaw;
+    }
+
     /**
      * 是否调用成功
      * @return bool
      */
     public function isSuccess()
     {
-        return empty($this->error);
+        return empty($this->errorMessage);
     }
 
     /**
@@ -108,7 +118,12 @@ class Client
      */
     public function getErrorMessage()
     {
-        return $this->error;
+        return $this->errorMessage;
+    }
+
+    public function getErrorCode()
+    {
+        return $this->errorCode;
     }
 
     public function setName($name)
