@@ -40,8 +40,11 @@ class Client
 
     private $poolConnection = [];
 
-    private $errorCode;
+    private $errorCode = 0;
     private $errorMessage;
+
+    private $error = false;
+
     private $result;
 
     private $resultRaw;
@@ -77,12 +80,15 @@ class Client
     {
         try {
             $this->resultRaw = $this->request();
+            $this->error = Arr::has($this->resultRaw, 'error');
             $this->errorMessage = Arr::get($this->resultRaw, 'error.message');
             $this->errorCode = Arr::get($this->resultRaw, 'error.code');
             $this->result = Arr::get($this->resultRaw, 'result');
         } catch (\Exception $e) {
             $this->result = null;
+            $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();
+            $this->error = true;
         } finally {
             return $this;
         }
@@ -121,7 +127,7 @@ class Client
      */
     public function isSuccess()
     {
-        return empty($this->errorMessage);
+        return !$this->error;
     }
 
     /**
