@@ -6,7 +6,7 @@
  * Time: 20:05
  */
 
-namespace Xskit\Swoft\Rpc;
+namespace XsKit\Swoft\Rpc;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
