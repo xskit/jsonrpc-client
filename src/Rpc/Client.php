@@ -98,6 +98,18 @@ class Client
         return $this->result;
     }
 
+    /**
+     * 获取调用成果，如果有异常或失败则抛出
+     */
+    public function getResultOrFail()
+    {
+        if ($this->isSuccess()) {
+            return $this->getResult();
+        }
+
+        throw new \RuntimeException($this->getErrorMessage(), $this->getErrorCode());
+    }
+
     public function getRaw()
     {
         return $this->resultRaw;
