@@ -69,10 +69,11 @@ class Client
             self::$instance = new self();
         }
 
-        return self::$instance->setName($name)->setMethod($method)->setParam($param)->setExt($ext)->setId('');
+        return self::$instance->setName($name)->setMethod($method)->setParam($param)->setExt($ext)->setRequestId(null);
     }
 
     /**
+     * 生成请求ID
      * @return string
      */
     private function generatorRequestId()
@@ -129,6 +130,10 @@ class Client
         throw new \RuntimeException($this->getErrorMessage(), $this->getErrorCode());
     }
 
+    /**
+     * 获取原数据
+     * @return array
+     */
     public function getRaw()
     {
         return $this->resultRaw;
@@ -141,6 +146,15 @@ class Client
     public function isSuccess()
     {
         return !$this->error;
+    }
+
+    /**
+     * 获取请求ID
+     * @return string
+     */
+    public function getRequestId()
+    {
+        return $this->id;
     }
 
     /**
@@ -175,7 +189,12 @@ class Client
         return $this;
     }
 
-    public function setId($id)
+    /**
+     * 设置请求ID
+     * @param $id
+     * @return $this
+     */
+    public function setRequestId($id)
     {
         $this->id = $id ?: $this->generatorRequestId();
         return $this;
