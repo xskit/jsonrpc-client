@@ -73,6 +73,19 @@ class Client
     }
 
     /**
+     * @return string
+     */
+    private function generatorRequestId()
+    {
+        try {
+            return bin2hex(random_bytes(8));
+        } catch (\Exception $e) {
+            return '';
+        }
+
+    }
+
+    /**
      * 执行调用
      * @return $this
      */
@@ -164,7 +177,7 @@ class Client
 
     public function setId($id)
     {
-        $this->id = $id;
+        $this->id = $id ?: $this->generatorRequestId();
         return $this;
     }
 

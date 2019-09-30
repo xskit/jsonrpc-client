@@ -24,12 +24,17 @@ use XsKit\Swoft\Rpc\Client;
 # 远程过程调用 
 $cli = Client::usage('功能模块名','方法名',['参数'])->call()
 
-# 获取调用结果
-$cli->getResult();
-
 # 判断调用是否成功
 $cli->isSuccess();
 
 # 获取调用失败信息
 $cli->getErrorMessage();
+
+# 获取调用结果
+$cli->getResult();
+
+# 获取调用结果，失败抛出 RuntimeException 异常
+$cli->getResultOrFail()
+
+
 ```
