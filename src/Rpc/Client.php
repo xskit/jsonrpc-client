@@ -288,54 +288,60 @@ class Client
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws \Throwable
      */
     private function request(): array
     {
         $host = trim($this->getHost());
-        if (isset($this->poolConnection[$host])) {
-            $fp = $this->poolConnection[$host];
-        } else {
-            $fp = $this->poolConnection[$host] = stream_socket_client($this->getHost(), $errNo, $errStr, $this->getTimeout());
-        }
-
-        if (!$fp) {
-            throw new \Exception(sprintf("stream_socket_client fail errno=%s errstr=%s", $errNo, $errStr));
-        }
-
-        $req = [
-            "jsonrpc" => '2.0',
-            "method" => sprintf("%s::%s::%s", $this->getVersion(), $this->getClass(), $this->method),
-            'params' => $this->param,
-            'id' => $this->id,
-            'ext' => $this->ext,
-        ];
-
-        $data = json_encode($req) . self::RPC_EOL;
-
-        fwrite($fp, $data);
-
-        //设置写超时
-        stream_set_timeout($fp, $this->getWriteTimeout());
-
-        $info = stream_get_meta_data($fp);
-        if ($info['timed_out']) {
-            throw new \Exception('write timeout');
-        }
-
-        $result = '';
-        while (!feof($fp)) {
-            $tmp = stream_socket_recvfrom($fp, 1024);
-
-            if ($pos = strpos($tmp, self::RPC_EOL)) {
-                $result .= substr($tmp, 0, $pos);
-                break;
+        try {
+            if (isset($this->poolConnection[$host])) {
+                $fp = $this->poolConnection[$host];
             } else {
-                $result .= $tmp;
+                $fp = $this->poolConnection[$host] = stream_socket_client($this->getHost(), $errNo, $errStr, $this->getTimeout());
             }
-        }
 
-        return json_decode($result, true);
+            if (!$fp) {
+                throw new \Exception(sprintf("stream_socket_client fail errno=%s errstr=%s", $errNo, $errStr));
+            }
+
+            $req = [
+                "jsonrpc" => '2.0',
+                "method" => sprintf("%s::%s::%s", $this->getVersion(), $this->getClass(), $this->method),
+                'params' => $this->param,
+                'id' => $this->id,
+                'ext' => $this->ext,
+            ];
+
+            $data = json_encode($req) . self::RPC_EOL;
+
+            fwrite($fp, $data);
+
+            //设置写超时
+            stream_set_timeout($fp, $this->getWriteTimeout());
+
+            $info = stream_get_meta_data($fp);
+            if ($info['timed_out']) {
+                throw new \Exception('write timeout');
+            }
+
+            $result = '';
+            while (!feof($fp)) {
+                $tmp = stream_socket_recvfrom($fp, 1024);
+
+                if ($pos = strpos($tmp, self::RPC_EOL)) {
+                    $result .= substr($tmp, 0, $pos);
+                    break;
+                } else {
+                    $result .= $tmp;
+                }
+            }
+
+            return json_decode($result, true);
+        } catch (\Throwable $e) {
+            fclose($this->poolConnection[$host]);
+            unset($this->poolConnection[$host]);
+            throw $e;
+        }
     }
 
     public function __destruct()
