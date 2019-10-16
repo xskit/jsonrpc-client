@@ -223,11 +223,7 @@ class Client
      */
     private function getVersion(): string
     {
-        $version = Arr::get($this->getFunctions(), $this->name . '.version');
-        if (empty($version)) {
-            throw new \Exception('rpc service [' . $this->name . '] version not found');
-        }
-        return $version;
+        return Arr::get($this->getFunctions(), $this->name . '.version', '1.0');
     }
 
     /**

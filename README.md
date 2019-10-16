@@ -11,7 +11,7 @@ laravel 5.8 swoft json rpc 2.0 客户端
      'functions' => [
             '功能模块名' => [
                 'class' => '', //服务接口类名
-                'version' => '1.0' //服务版本
+                'version' => '1.0' //服务版本,默认: 1.0
             ]
         ]
     
