@@ -22,7 +22,7 @@ class Client
 {
     private $config;
 
-    private $connection = 'default';
+    private $connection;
 
     private static $instance = null;
 
@@ -89,6 +89,7 @@ class Client
     /**
      * 执行调用
      * @return $this
+     * @throws \Throwable
      */
     public function call()
     {
@@ -211,7 +212,7 @@ class Client
      * @param $name
      * @return $this
      */
-    public function setConnection($name = 'default')
+    public function setConnection($name)
     {
         $this->connection = $name;
         return $this;
@@ -255,6 +256,8 @@ class Client
      */
     private function getConnectionInfo()
     {
+        $this->connection = $this->connection ?: Arr::get($this->getFunctions(), $this->name . '.connection', 'default');
+
         $conn = Arr::get($this->config, 'connection.' . $this->connection);
         if (empty($conn)) {
             throw new \Exception('connection information not found');
