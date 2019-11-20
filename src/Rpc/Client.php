@@ -224,7 +224,7 @@ class Client
      */
     private function getVersion(): string
     {
-        return Arr::get($this->getFunctions(), $this->name . '.version', '1.0');
+        return Arr::get($this->getServices(), $this->name . '.version', '1.0');
     }
 
     /**
@@ -243,7 +243,7 @@ class Client
      */
     private function getClass(): string
     {
-        $class = Arr::get($this->getFunctions(), $this->name . '.class');
+        $class = Arr::get($this->getServices(), $this->name . '.class');
         if (empty($class)) {
             throw new \Exception('rpc service [' . $this->name . '] class not found');
         }
@@ -256,7 +256,7 @@ class Client
      */
     private function getConnectionInfo()
     {
-        $this->connection = $this->connection ?: Arr::get($this->getFunctions(), $this->name . '.connection', 'default');
+        $this->connection = $this->connection ?: Arr::get($this->getServices(), $this->name . '.connection', 'default');
 
         $conn = Arr::get($this->config, 'connection.' . $this->connection);
         if (empty($conn)) {
@@ -265,9 +265,13 @@ class Client
         return $conn;
     }
 
-    private function getFunctions(): array
+    /**
+     * 获取服务配置
+     * @return array
+     */
+    private function getServices(): array
     {
-        return Arr::get($this->config, 'functions', []);
+        return Arr::get($this->config, 'services', []);
     }
 
     /**

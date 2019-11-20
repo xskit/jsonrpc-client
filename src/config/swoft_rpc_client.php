@@ -16,7 +16,7 @@ return [
         ]
     ],
 
-    'functions' => [
+    'services' => [
         'foo' => [
             'class' => '', //接口类名
             'version' => '1.0'
