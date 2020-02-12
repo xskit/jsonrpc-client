@@ -32,7 +32,7 @@ class Client
 
     private $param;
 
-    private $id = '';
+    private $id;
 
     private $ext = [];
 
@@ -69,7 +69,7 @@ class Client
             self::$instance = new self();
         }
 
-        return self::$instance->setName($name)->setMethod($method)->setParam($param)->setExt($ext)->setRequestId(null);
+        return self::$instance->service($name)->method($method)->param($param)->ext($ext);
     }
 
     /**
@@ -172,19 +172,19 @@ class Client
         return $this->errorCode;
     }
 
-    public function setName($name)
+    public function service($name)
     {
         $this->name = $name;
         return $this;
     }
 
-    public function setMethod($name)
+    public function method($name)
     {
         $this->method = $name;
         return $this;
     }
 
-    public function setParam($param)
+    public function param($param)
     {
         $this->param = $param;
         return $this;
@@ -197,11 +197,11 @@ class Client
      */
     public function setRequestId($id)
     {
-        $this->id = $id ?: $this->generatorRequestId();
+        $this->id = $id;
         return $this;
     }
 
-    public function setExt($value)
+    public function ext($value)
     {
         $this->ext = $value;
         return $this;
@@ -311,25 +311,19 @@ class Client
                 "jsonrpc" => '2.0',
                 "method" => sprintf("%s::%s::%s", $this->getVersion(), $this->getClass(), $this->method),
                 'params' => $this->param,
-                'id' => $this->id,
+                'id' => $this->id ?: $this->generatorRequestId(),
                 'ext' => $this->ext,
             ];
 
             $data = json_encode($req) . self::RPC_EOL;
-
             fwrite($fp, $data);
 
-            //设置写超时
-            stream_set_timeout($fp, $this->getWriteTimeout());
-
-            $info = stream_get_meta_data($fp);
-            if ($info['timed_out']) {
-                throw new \Exception('write timeout');
-            }
-
             $result = '';
-            while (!feof($fp)) {
+            // 记录开始时间,判断是否超时，避免 feof() 陷入无限循环
+            $start = microtime(true);
+            while (!feof($fp) && $this->checkTimeout($start)) {
                 $tmp = stream_socket_recvfrom($fp, 1024);
+                $start = microtime(true);
 
                 if ($pos = strpos($tmp, self::RPC_EOL)) {
                     $result .= substr($tmp, 0, $pos);
@@ -346,6 +340,21 @@ class Client
             throw $e;
         }
     }
+
+    /**
+     * @param $time
+     * @return bool
+     */
+    private function checkTimeout($time)
+    {
+        $res = (microtime(true) - $time) < $this->getWriteTimeout();
+        if (!$res) {
+            // 超时
+            trigger_error('RPC invoke timeout');
+        }
+        return $res;
+    }
+
 
     public function __destruct()
     {
