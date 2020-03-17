@@ -1,6 +1,6 @@
 {
-  "name": "xskit/swoft-rpc-client",
-  "description": "swoft rpc 2.0 client",
+  "name": "xskit/rpc-client",
+  "description": "rpc 2.0 client",
   "license": "MIT",
   "authors": [
     {
@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "XsKit\\Swoft\\": "src/"
+      "XsKit\\RpcClient\\": "src/"
     }
   }
 }
