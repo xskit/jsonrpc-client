@@ -118,9 +118,29 @@ abstract class AbstractServiceClient
         throw new RequestException('Invalid response.');
     }
 
+    /**
+     * 生成请求路由
+     * @param string $methodName
+     * @return string
+     */
+    protected function __generateRpcPath(string $methodName): string
+    {
+        if (!$this->serviceName) {
+            throw new InvalidArgumentException('Parameter $serviceName missing.');
+        }
+        return $this->serviceName . $methodName;
+    }
+
+    /**
+     * 生成请求数据
+     * @param string $methodName
+     * @param array $params
+     * @param null|string $id
+     * @return array
+     */
     protected function __generateData(string $methodName, array $params, ?string $id)
     {
-        return $this->dataFormatter->formatRequest([$this->serviceName, $methodName, $params, $id]);
+        return $this->dataFormatter->formatRequest([$this->__generateRpcPath($methodName), $params, $id]);
     }
 
     /**

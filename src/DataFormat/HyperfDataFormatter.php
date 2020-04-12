@@ -1,20 +1,23 @@
 <?php
+
+declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: Xingshun <250915790@qq.com>
- * Date: 2020/3/11
- * Time: 0:19
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://doc.hyperf.io
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 
-namespace XsKit\Swoft\DataFormat;
+namespace Hyperf\JsonRpc;
 
 
 use XsKit\RpcClient\Contract\ContextInterface;
 use XsKit\RpcClient\Contract\DataFormatterInterface;
 
-class SwoftDataFormat implements DataFormatterInterface
+class HyperfDataFormatter implements DataFormatterInterface
 {
-
     /**
      * @var ContextInterface
      */
@@ -25,44 +28,29 @@ class SwoftDataFormat implements DataFormatterInterface
         $this->context = $context;
     }
 
-    /**
-     * @param array $data [$path, $params, $id]
-     * @return array
-     */
     public function formatRequest($data)
     {
-        [
-            'method' => $method,
-            'params' => $params,
-            'id' => $id,
-        ] = $data;
+        [$path, $params, $id] = $data;
         return [
             'jsonrpc' => '2.0',
-            'method' => $method,
+            'method' => $path,
             'params' => $params,
             'id' => $id,
-            'ext' => $this->context->getData(),
+            'context' => $this->context->getData(),
         ];
     }
 
-    /**
-     * @param array $data [$id, $result]
-     * @return array
-     */
     public function formatResponse($data)
     {
-        ['id' => $id, 'result' => $result] = $data;
+        [$id, $result] = $data;
         return [
             'jsonrpc' => '2.0',
             'id' => $id,
             'result' => $result,
+            'context' => $this->context->getData(),
         ];
     }
 
-    /**
-     * @param array $data [$id, $code, $message, $exception]
-     * @return array
-     */
     public function formatErrorResponse($data)
     {
         [$id, $code, $message, $data] = $data;
@@ -82,6 +70,7 @@ class SwoftDataFormat implements DataFormatterInterface
                 'message' => $message,
                 'data' => $data,
             ],
+            'context' => $this->context->getData(),
         ];
     }
 }
