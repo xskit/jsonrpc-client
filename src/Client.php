@@ -11,6 +11,7 @@ namespace XsKit\RpcClient;
 
 use XsKit\RpcClient\Contract\PackerInterface;
 use XsKit\RpcClient\Contract\TransporterInterface;
+use InvalidArgumentException;
 
 /**
  * RPC 服务客户端
@@ -30,40 +31,35 @@ class Client
      */
     private $transporter;
 
-    private $id;
-
     /**
-     * 生成请求ID
-     * @return string
+     * 发送数据
+     * @param $data
+     * @return mixed
      */
-    private function generatorRequestId()
+    public function send($data)
     {
-        try {
-            return bin2hex(random_bytes(8));
-        } catch (\Exception $e) {
-            return '';
+        if (!$this->packer) {
+            throw new InvalidArgumentException('Packer missing');
         }
-    }
+        if (!$this->transporter) {
+            throw new InvalidArgumentException('Transporter missing');
+        }
 
-
-    /**
-     * 获取请求ID
-     * @return string
-     */
-    public function getRequestId()
-    {
-        return $this->id ?: $this->generatorRequestId();
+        $packer = $this->getPacker();
+        $packedData = $packer->pack($data);
+        $response = $this->getTransporter()->send($packedData);
+        return $packer->unpack((string)$response);
     }
 
     /**
-     * 设置请求ID
-     * @param $id
-     * @return $this
+     * 接收数据
+     * @return mixed
      */
-    public function setRequestId($id)
+    public function recv()
     {
-        $this->id = $id;
-        return $this;
+        $response = $this->getTransporter()->receive();
+        $packer = $this->getPacker();
+        return $packer->unpack((string)$response);
     }
 
     public function getPacker(): PackerInterface

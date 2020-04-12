@@ -13,7 +13,6 @@ use XsKit\RpcClient\Contract\DataFormatterInterface;
 
 class SwoftDataFormat implements DataFormatterInterface
 {
-
     /**
      * @param array $data [$path, $params, $id]
      * @return array

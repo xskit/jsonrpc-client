@@ -8,7 +8,11 @@
 
 namespace XsKit\RpcClient\Contract;
 
-
+/**
+ * 数据运输接口
+ * Interface TransporterInterface
+ * @package XsKit\RpcClient\Contract
+ */
 interface TransporterInterface
 {
     public function send(string $data);

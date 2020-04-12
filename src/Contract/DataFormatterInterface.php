@@ -8,7 +8,11 @@
 
 namespace XsKit\RpcClient\Contract;
 
-
+/**
+ * 数据格式化
+ * Interface DataFormatterInterface
+ * @package XsKit\RpcClient\Contract
+ */
 interface DataFormatterInterface
 {
     /**

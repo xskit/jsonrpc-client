@@ -8,7 +8,11 @@
 
 namespace XsKit\RpcClient;
 
-
+/**
+ * 服务节点
+ * Class Node
+ * @package XsKit\RpcClient
+ */
 class Node
 {
     /**

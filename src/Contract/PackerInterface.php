@@ -8,7 +8,11 @@
 
 namespace XsKit\RpcClient\Contract;
 
-
+/**
+ * 数据封包拆包
+ * Interface PackerInterface
+ * @package XsKit\RpcClient\Contract
+ */
 interface PackerInterface
 {
     public function pack($data): string;

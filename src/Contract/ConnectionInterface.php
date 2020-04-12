@@ -8,7 +8,11 @@
 
 namespace XsKit\RpcClient\Contract;
 
-
+/**
+ * 连接
+ * Interface ConnectionInterface
+ * @package XsKit\RpcClient\Contract
+ */
 interface ConnectionInterface
 {
     /**

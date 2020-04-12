@@ -8,8 +8,10 @@
 
 namespace XsKit\RpcClient;
 
+use XsKit\RpcClient\Contract\DataFormatterInterface;
 use XsKit\RpcClient\Contract\LoadBalancerInterface;
 use InvalidArgumentException;
+use XsKit\RpcClient\Exception\RequestException;
 use XsKit\RpcClient\LoadBalancer\RandomBalancer;
 
 /**
@@ -19,6 +21,13 @@ use XsKit\RpcClient\LoadBalancer\RandomBalancer;
  */
 abstract class AbstractServiceClient
 {
+    /**
+     * The service name of the target service.
+     *
+     * @var string
+     */
+    protected $serviceName = '';
+
     /**
      * @var string RPC 同配置文件中配置的服务接口名相同
      */
@@ -34,25 +43,84 @@ abstract class AbstractServiceClient
      */
     protected $client;
 
+    protected $id;
+
+    /**
+     * @var DataFormatterInterface
+     */
+    protected $dataFormatter;
+
     public function __construct()
     {
-        $this->client = (new Client())->setPacker()->setTransporter();
+        // 设置包装器、运输机+负载均衡器、数据格式化
+        $packer = null;
+        $transporter = null;
+        $this->dataFormatter = null;
+        $this->client = (new Client())->setPacker($packer)->setTransporter($transporter);
     }
 
-    protected function __request(string $method, array $params, array $ext = [], ?string $id = null)
+    /**
+     * 生成请求ID
+     * @return string
+     */
+    private function generatorRequestId()
     {
-
+        try {
+            return bin2hex(random_bytes(8));
+        } catch (\Exception $e) {
+            return '';
+        }
     }
 
-    protected function getPackage()
+
+    /**
+     * 获取请求ID
+     * @return string
+     */
+    public function getRequestId()
     {
-
-
+        return $this->id ?: $this->generatorRequestId();
     }
 
-    protected function getDataFormat()
+    /**
+     * 设置请求ID
+     * @param $id
+     * @return $this
+     */
+    public function setRequestId($id)
     {
+        $this->id = $id;
+        return $this;
+    }
 
+    public function __call(string $method, array $params)
+    {
+        return $this->__request($method, $params);
+    }
+
+    protected function __request(string $method, array $params, ?string $id = null)
+    {
+        if (!$id) {
+            $id = $this->getRequestId();
+        }
+
+        $response = $this->client->send($this->__generateData($method, $params, $id));
+        if (is_array($response)) {
+            $response = $this->checkRequestIdAndTryAgain($response, $id);
+
+            if (array_key_exists('result', $response)) {
+                return $response['result'];
+            }
+            if (array_key_exists('error', $response)) {
+                return $response['error'];
+            }
+        }
+        throw new RequestException('Invalid response.');
+    }
+
+    protected function __generateData(string $methodName, array $params, ?string $id)
+    {
+        return $this->dataFormatter->formatRequest([$this->serviceName, $methodName, $params, $id]);
     }
 
     /**
@@ -104,6 +172,31 @@ abstract class AbstractServiceClient
 
         throw new InvalidArgumentException('Config of registry or nodes missing.');
 
+    }
+
+    protected function checkRequestIdAndTryAgain(array $response, $id, int $again = 1): array
+    {
+        if (is_null($id)) {
+            // If the request id is null then do not check.
+            return $response;
+        }
+
+        if (isset($response['id']) && $response['id'] === $id) {
+            return $response;
+        }
+
+        if ($again <= 0) {
+            throw new RequestException(sprintf(
+                'Invalid response. Request id[%s] is not equal to response id[%s].',
+                $id,
+                $response['id'] ?? null
+            ));
+        }
+
+        $response = $this->client->recv();
+        --$again;
+
+        return $this->checkRequestIdAndTryAgain($response, $id, $again);
     }
 
 }
